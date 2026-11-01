@@ -132,6 +132,13 @@ function renderCart() {
   const totalValue = validEntries.reduce((sum, [id, qty]) => sum + getMenu(id).price * qty, 0);
   $('#cart-count').textContent = String(totalCount);
   $('#cart-subtotal').textContent = money(totalValue);
+  const mobileCartBar = $('#mobile-cart-bar');
+  if (mobileCartBar) {
+    mobileCartBar.hidden = totalCount === 0;
+    $('#mobile-cart-summary').textContent = `${totalCount} ${totalCount === 1 ? 'menu' : 'menu'}`;
+    $('#mobile-cart-total').textContent = money(totalValue);
+    mobileCartBar.setAttribute('aria-label', `Lihat ${totalCount} menu, subtotal ${money(totalValue)}`);
+  }
   const host = $('#cart-items');
   if (!totalCount) {
     host.innerHTML = '<div class="empty-cart"><span>＋</span><b>Belum ada menu</b><p>Tambahkan menu favoritmu dari daftar menu.</p></div>';

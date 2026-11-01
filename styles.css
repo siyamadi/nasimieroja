@@ -29,3 +29,9 @@
   .toast{bottom:calc(88px + env(safe-area-inset-bottom))}
   body{padding-bottom:8px}
 }
+
+/* Form identitas pemesan pada checkout WhatsApp */
+.cart-footer .checkout-input{display:block;width:100%;min-height:44px;margin:0;background:#191512;border:1px solid #3b3125;color:#fff;border-radius:7px;padding:10px 12px;font:inherit;font-size:13px;outline:none}
+.cart-footer .checkout-input:focus,.cart-footer textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(246,201,40,.12)}
+.cart-footer .checkout-input::placeholder{color:#6f675d}
+.checkout-label-spaced{margin-top:12px}

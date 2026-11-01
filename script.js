@@ -183,6 +183,19 @@ $('#cart-close').addEventListener('click', closeCart);
 cartBackdrop.addEventListener('click', closeCart);
 $('#checkout-button').addEventListener('click', () => {
   if (!cart.size) { showToast('Tambahkan menu terlebih dahulu.'); return; }
+  const customerName = $('#customer-name').value.trim();
+  const customerPhone = $('#customer-phone').value.trim();
+  const customerPhoneDigits = customerPhone.replace(/\D/g, '');
+  if (!customerName) {
+    $('#customer-name').focus();
+    showToast('Mohon isi nama pemesan terlebih dahulu.');
+    return;
+  }
+  if (customerPhoneDigits.length < 9 || customerPhoneDigits.length > 15) {
+    $('#customer-phone').focus();
+    showToast('Masukkan nomor telepon yang valid (9–15 digit).');
+    return;
+  }
   const entries = [...cart.entries()].filter(([id]) => getMenu(id));
   const lines = entries.map(([id, qty]) => {
     const item = getMenu(id);
@@ -190,7 +203,7 @@ $('#checkout-button').addEventListener('click', () => {
   });
   const total = entries.reduce((sum, [id, qty]) => sum + getMenu(id).price * qty, 0);
   const note = $('#customer-note').value.trim();
-  const message = `Halo Nasimie Roja, saya ingin memesan:\n\n${lines.join('\n')}\n\nSubtotal: ${money(total)}${note ? `\nCatatan: ${note}` : ''}\n\nMohon konfirmasi ketersediaan dan total akhir pesanan. Terima kasih.`;
+  const message = `Halo Nasimie Roja, saya ingin memesan:\n\nNama Pemesan: ${customerName}\nNomor Telepon: ${customerPhone}\n\n${lines.join('\n')}\n\nSubtotal: ${money(total)}${note ? `\nCatatan: ${note}` : ''}\n\nMohon konfirmasi ketersediaan dan total akhir pesanan. Terima kasih.`;
   const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
   const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
   window.open(url, '_blank', 'noopener,noreferrer');

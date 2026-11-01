@@ -139,7 +139,11 @@
   <aside class="cart-drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-hidden="true">
     <div class="cart-head"><div><p class="eyebrow">PESANAN KAMU</p><h2 id="cart-title">Keranjang <span class="gold-text">menu.</span></h2></div><button class="icon-button" type="button" id="cart-close" aria-label="Tutup keranjang">×</button></div>
     <div class="cart-items" id="cart-items"><div class="empty-cart"><span>＋</span><b>Belum ada menu</b><p>Tambahkan menu favoritmu dari daftar menu.</p></div></div>
-    <div class="cart-footer"><div class="cart-total-row"><span>Subtotal</span><strong id="cart-subtotal">Rp0</strong></div><label class="form-label" for="customer-note">Catatan pesanan (opsional)</label><textarea id="customer-note" rows="2" placeholder="Contoh: tidak pedas, tanpa bawang..."></textarea><button class="button button-red checkout-button" type="button" id="checkout-button">Lanjutkan via WhatsApp <span aria-hidden="true">↗</span></button><p class="checkout-help">Pesanan akan disiapkan dalam format pesan WhatsApp untuk dikirim.</p></div>
+    <div class="cart-footer"><div class="cart-total-row"><span>Subtotal</span><strong id="cart-subtotal">Rp0</strong></div>
+      <label class="form-label" for="customer-name">Nama pemesan <span aria-hidden="true">*</span></label><input class="checkout-input" id="customer-name" type="text" autocomplete="name" maxlength="80" placeholder="Masukkan nama pemesan" required>
+      <label class="form-label checkout-label-spaced" for="customer-phone">Nomor telepon / WhatsApp <span aria-hidden="true">*</span></label><input class="checkout-input" id="customer-phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Contoh: 081234567890" required>
+      <label class="form-label checkout-label-spaced" for="customer-note">Catatan pesanan (opsional)</label><textarea id="customer-note" rows="2" placeholder="Contoh: tidak pedas, tanpa bawang..."></textarea>
+      <button class="button button-red checkout-button" type="button" id="checkout-button">Lanjutkan via WhatsApp <span aria-hidden="true">↗</span></button><p class="checkout-help">Nama dan nomor telepon akan dicantumkan otomatis pada pesan WhatsApp.</p></div>
   </aside>
   <button class="mobile-cart-bar" id="mobile-cart-bar" type="button" data-open-cart aria-label="Buka keranjang pesanan" hidden>
     <span class="mobile-cart-icon" aria-hidden="true">🛒</span>

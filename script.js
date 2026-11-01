@@ -24,10 +24,24 @@ let toastTimer;
 
 function showToast(message) {
   if (!toast) return;
-  toast.textContent = message;
+  
+  // Menambahkan teks petunjuk tambahan agar konsumen tahu kotak kuning bisa diklik
+  toast.textContent = message + " (Lihat Keranjang ↗)";
   toast.classList.add('show');
+  
+  // Mengubah kursor menjadi bentuk tangan agar interaktif
+  toast.style.cursor = 'pointer'; 
+  
+  // Ketika kotak kuning diklik, otomatis membuka keranjang belanja
+  toast.onclick = () => {
+    openCart(); 
+  };
+
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+    toast.onclick = null; // Menghapus fungsi klik saat kotak kuning hilang
+  }, 2600);
 }
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));

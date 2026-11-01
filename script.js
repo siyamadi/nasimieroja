@@ -22,26 +22,15 @@ const cartBackdrop = $('#cart-backdrop');
 const toast = $('#toast');
 let toastTimer;
 
-function showToast(message) {
+function showToast(message, openOrderAction = false) {
   if (!toast) return;
-  
-  // Menambahkan teks petunjuk tambahan agar konsumen tahu kotak kuning bisa diklik
-  toast.textContent = message + " (Lihat Keranjang ↗)";
+  toast.textContent = openOrderAction ? `${message} · Ketuk untuk lihat pesanan →` : message;
+  toast.classList.toggle('is-action', openOrderAction);
+  toast.setAttribute('aria-label', openOrderAction ? `${message} Ketuk untuk melihat total pesanan.` : message);
   toast.classList.add('show');
-  
-  // Mengubah kursor menjadi bentuk tangan agar interaktif
-  toast.style.cursor = 'pointer'; 
-  
-  // Ketika kotak kuning diklik, otomatis membuka keranjang belanja
-  toast.onclick = () => {
-    openCart(); 
-  };
-
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.classList.remove('show');
-    toast.onclick = null; // Menghapus fungsi klik saat kotak kuning hilang
-  }, 2600);
+  // Notifikasi pesanan diberi waktu lebih lama agar mudah diketuk di layar HP.
+  toastTimer = setTimeout(() => toast.classList.remove('show'), openOrderAction ? 6500 : 2600);
 }
 function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -131,7 +120,7 @@ function addToCart(id) {
   if (!item) return;
   cart.set(id, (cart.get(id) || 0) + 1);
   renderCart();
-  showToast(`${item.name} ditambahkan ke pesanan.`);
+  showToast(`${item.name} ditambahkan.`, true);
 }
 $('#menu-grid')?.addEventListener('click', event => {
   const button = event.target.closest('[data-add]');
@@ -160,6 +149,8 @@ function renderCart() {
   }));
 }
 function openCart() {
+  clearTimeout(toastTimer);
+  toast?.classList.remove('show');
   cartBackdrop.hidden = false;
   requestAnimationFrame(() => cartDrawer.classList.add('is-open'));
   cartDrawer.setAttribute('aria-hidden', 'false');
@@ -172,6 +163,15 @@ function closeCart() {
   document.body.classList.remove('cart-open');
   setTimeout(() => { if (!cartDrawer.classList.contains('is-open')) cartBackdrop.hidden = true; }, 320);
 }
+toast?.addEventListener('click', () => {
+  if (toast.classList.contains('is-action')) openCart();
+});
+toast?.addEventListener('keydown', event => {
+  if (toast.classList.contains('is-action') && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    openCart();
+  }
+});
 $('#cart-close').addEventListener('click', closeCart);
 cartBackdrop.addEventListener('click', closeCart);
 $('#checkout-button').addEventListener('click', () => {

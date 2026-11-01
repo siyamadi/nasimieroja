@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://sitemaps.org">
-  <!-- Halaman Utama -->
   <url>
-    <loc>https://www.nasimieroja.com</loc>
+    <loc>https://nasimieroja.com</loc>
     <lastmod>2026-11-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>

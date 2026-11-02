@@ -1,5 +1,0 @@
-[[redirects]]
-  from = "/sitemap.xml"
-  to = "/sitemap.xml"
-  status = 200
-  headers = { Content-Type = "application/xml" }

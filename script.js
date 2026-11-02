@@ -4,9 +4,9 @@
 const WHATSAPP_NUMBER = '6281324983459';
 
 const DEFAULT_MENU = [
-  { id: 'nasi-tek-tek', name: 'Nasi Goreng Tek-Tek', category: 'nasi', price: 18000, description: 'Racikan nasi goreng khas dengan rasa gurih dan bumbu yang akrab di lidah.', image: 'https://images.deliveryhero.io/image/hungerstation/restaurant/android_cover_photo/ef5ed55f8ac53aba7b4e3ad8552431ee.jpg', badge: 'Favorit' },
-  { id: 'nasi-seafood', name: 'Nasi Goreng Seafood', category: 'nasi', price: 25000, description: 'Pilihan untuk kamu yang ingin menikmati nasi goreng dengan sensasi seafood.', image: 'https://tcdn.mindtrip.ai/images/453051/dnm8qq.png', badge: 'Spesial' },
-  { id: 'mie-tek-tek', name: 'Mie Goreng Tek-Tek', category: 'mie', price: 18000, description: 'Mie goreng dengan bumbu khas, cocok untuk penggemar sajian tek-tek.', image: 'https://static.wixstatic.com/media/dd0186_bb18df0c8ff840afadaf7b9dfe214cdc~mv2.jpg/v1/fill/w_980%2Ch_653%2Cal_c%2Cq_85%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/Arranged%20Food%20and%20Objects.jpg', badge: 'Andalan' },
+  { id: 'nasi-tek-tek', name: 'Nasi Goreng Tek-Tek', category: 'nasi', price: 18000, description: 'Racikan nasi goreng khas dengan rasa gurih dan bumbu yang akrab di lidah.', image: 'https://deliveryhero.io', badge: 'Favorit' },
+  { id: 'nasi-seafood', name: 'Nasi Goreng Seafood', category: 'nasi', price: 25000, description: 'Pilihan untuk kamu yang ingin menikmati nasi goreng dengan sensasi seafood.', image: 'https://mindtrip.ai', badge: 'Spesial' },
+  { id: 'mie-tek-tek', name: 'Mie Goreng Tek-Tek', category: 'mie', price: 18000, description: 'Mie goreng dengan bumbu khas, cocok untuk penggemar sajian tek-tek.', image: 'https://wixstatic.com', badge: 'Andalan' },
   { id: 'es-teh', name: 'Es Teh', category: 'minuman', price: 5000, description: 'Minuman sederhana yang pas menemani menu favoritmu.', image: '', badge: 'Segar' }
 ];
 let MENU = DEFAULT_MENU.map(item => ({ ...item }));
@@ -39,6 +39,7 @@ function safeImage(value) {
   const src = String(value || '').trim();
   return /^(https?:\/\/|data:image\/(png|jpeg|webp);base64,)/i.test(src) ? src : '';
 }
+
 function normalizeMenu(data) {
   if (!Array.isArray(data)) return null;
   const seen = new Set();
@@ -48,7 +49,11 @@ function normalizeMenu(data) {
     const id = String(raw.id || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 64);
     const name = String(raw.name || '').trim().slice(0, 90);
     const price = Math.round(Number(raw.price));
-    const category = ['nasi', 'mie', 'minuman', 'lainnya'].includes(raw.category) ? raw.category : 'lainnya';
+    
+    
+    const rawCategory = String(raw.category || '').trim().toLowerCase();
+    const category = rawCategory ? rawCategory : 'lainnya';
+    
     if (!id || !name || !Number.isFinite(price) || price < 0 || seen.has(id)) continue;
     seen.add(id);
     result.push({
@@ -60,7 +65,38 @@ function normalizeMenu(data) {
   }
   return result;
 }
+
 function getMenu(id) { return MENU.find(item => item.id === id); }
+
+function renderCategoryChips() {
+  const container = $('.chips-container') || $('.category-filter'); // Mencari elemen pembungkus tombol kategori Anda
+  if (!container) return;
+
+   const semuaKategori = MENU.map(item => item.category);
+  const kategoriUnik = [...new Set(semuaKategori)].filter(Boolean);
+
+   let htmlChips = `<button class="chip-btn ${activeFilter === 'all' ? 'active' : ''}" type="button" data-filter="all" aria-pressed="${activeFilter === 'all'}">Semua menu</button>`;
+
+  kategoriUnik.forEach(kategori => {
+    const active = activeFilter === kategori;
+    // Membuat tampilan teks kategori menjadi rapi (Huruf besar di awal kata)
+    const labelKategori = kategori.charAt(0).toUpperCase() + kategori.slice(1);
+    htmlChips += `<button class="chip-btn ${active ? 'active' : ''}" type="button" data-filter="${escapeHtml(kategori)}" aria-pressed="${active}">${escapeHtml(labelKategori)}</button>`;
+  });
+
+  container.innerHTML = htmlChips;
+
+  $$('[data-filter]', container).forEach(button => button.addEventListener('click', () => {
+    activeFilter = button.dataset.filter || 'all';
+    $$('[data-filter]', container).forEach(chip => {
+      const active = chip === button;
+      chip.classList.toggle('active', active);
+      chip.setAttribute('aria-pressed', String(active));
+    });
+    renderMenu();
+  }));
+}
+
 function renderMenu() {
   const host = $('#menu-grid');
   if (!host) return;
@@ -78,6 +114,7 @@ function renderMenu() {
     return `<article class="menu-card" data-category="${escapeHtml(item.category)}"><div class="menu-photo ${image ? '' : 'drink-photo'}">${photo}${badge}</div><div class="menu-card-content"><div class="menu-card-title"><h3>${escapeHtml(item.name)}</h3><span class="price">${money(item.price)}</span></div><p>${escapeHtml(item.description)}</p><button class="add-button" type="button" data-add="${escapeHtml(item.id)}">＋ Tambah pesanan</button></div></article>`;
   }).join('');
 }
+
 async function loadMenuData() {
   try {
     const response = await fetch('./menu-data.json', { cache: 'no-store' });
@@ -85,12 +122,13 @@ async function loadMenuData() {
     const data = normalizeMenu(await response.json());
     if (data) MENU = data;
   } catch (error) {
-    // Fallback ke menu awal jika file lokal dibuka langsung atau JSON belum dipasang.
     console.info('Menggunakan menu bawaan:', error.message);
   }
+  renderCategoryChips(); // Menjalankan pembuatan tombol kategori otomatis
   renderMenu();
   renderCart();
 }
+
 function scrollToMenu() {
   nav?.classList.remove('open');
   navToggle?.setAttribute('aria-expanded', 'false');
@@ -106,15 +144,7 @@ $$('.main-nav a').forEach(link => link.addEventListener('click', () => {
   nav?.classList.remove('open');
   navToggle?.setAttribute('aria-expanded', 'false');
 }));
-$$('[data-filter]').forEach(button => button.addEventListener('click', () => {
-  activeFilter = button.dataset.filter || 'all';
-  $$('[data-filter]').forEach(chip => {
-    const active = chip === button;
-    chip.classList.toggle('active', active);
-    chip.setAttribute('aria-pressed', String(active));
-  });
-  renderMenu();
-}));
+
 function addToCart(id) {
   const item = getMenu(id);
   if (!item) return;
@@ -146,67 +176,68 @@ function renderCart() {
   }
   host.innerHTML = validEntries.map(([id, qty]) => {
     const item = getMenu(id);
-    return `<div class="cart-row"><div><h3>${escapeHtml(item.name)}</h3><small>${money(item.price)} · ${money(item.price * qty)}</small></div><div class="cart-item-actions"><button class="qty-button" type="button" data-qty="${escapeHtml(id)}" data-delta="-1" aria-label="Kurangi ${escapeHtml(item.name)}">−</button><span class="qty-num">${qty}</span><button class="qty-button" type="button" data-qty="${escapeHtml(id)}" data-delta="1" aria-label="Tambah ${escapeHtml(item.name)}">+</button></div></div>`;
-  }).join('');
-  $$('[data-qty]', host).forEach(button => button.addEventListener('click', () => {
-    const id = button.dataset.qty;
-    const next = (cart.get(id) || 0) + Number(button.dataset.delta);
-    if (next <= 0) cart.delete(id); else cart.set(id, next);
-    renderCart();
-  }));
+Gunakan kode dengan hati-hati.
+return <div class="cart-row"><div><h3>${escapeHtml(item.name)}</h3><small>${money(item.price)} · ${money(item.price * qty)}</small></div><div class="cart-item-actions"><button class="qty-button" type="button" data-qty="${escapeHtml(id)}" data-delta="-1" aria-label="Kurangi ${escapeHtml(item.name)}">−</button><span class="qty-num">${qty}</span><button class="qty-button" type="button" data-qty="${escapeHtml(id)}" data-delta="1" aria-label="Tambah ${escapeHtml(item.name)}">+</button></div></div>;
+}).join('');
+$$('[data-qty]', host).forEach(button => button.addEventListener('click', () => {
+const id = button.dataset.qty;
+const next = (cart.get(id) || 0) + Number(button.dataset.delta);
+if (next <= 0) cart.delete(id); else cart.set(id, next);
+renderCart();
+}));
 }
 function openCart() {
-  clearTimeout(toastTimer);
-  toast?.classList.remove('show');
-  cartBackdrop.hidden = false;
-  requestAnimationFrame(() => cartDrawer.classList.add('is-open'));
-  cartDrawer.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('cart-open');
-  $('#cart-close').focus();
+clearTimeout(toastTimer);
+toast?.classList.remove('show');
+cartBackdrop.hidden = false;
+requestAnimationFrame(() => cartDrawer.classList.add('is-open'));
+cartDrawer.setAttribute('aria-hidden', 'false');
+document.body.classList.add('cart-open');
+$('#cart-close').focus();
 }
 function closeCart() {
-  cartDrawer.classList.remove('is-open');
-  cartDrawer.setAttribute('aria-hidden', 'true');
-  document.body.classList.remove('cart-open');
-  setTimeout(() => { if (!cartDrawer.classList.contains('is-open')) cartBackdrop.hidden = true; }, 320);
+cartDrawer.classList.remove('is-open');
+cartDrawer.setAttribute('aria-hidden', 'true');
+document.body.classList.remove('cart-open');
+setTimeout(() => { if (!cartDrawer.classList.contains('is-open')) cartBackdrop.hidden = true; }, 320);
 }
 toast?.addEventListener('click', () => {
-  if (toast.classList.contains('is-action')) openCart();
+if (toast.classList.contains('is-action')) openCart();
 });
 toast?.addEventListener('keydown', event => {
-  if (toast.classList.contains('is-action') && (event.key === 'Enter' || event.key === ' ')) {
-    event.preventDefault();
-    openCart();
-  }
+if (toast.classList.contains('is-action') && (event.key === 'Enter' || event.key === ' ')) {
+event.preventDefault();
+openCart();
+}
 });
 $('#cart-close').addEventListener('click', closeCart);
 cartBackdrop.addEventListener('click', closeCart);
 $('#checkout-button').addEventListener('click', () => {
-  if (!cart.size) { showToast('Tambahkan menu terlebih dahulu.'); return; }
-  const customerName = $('#customer-name').value.trim();
-  const customerPhone = $('#customer-phone').value.trim();
-  const customerPhoneDigits = customerPhone.replace(/\D/g, '');
-  if (!customerName) {
-    $('#customer-name').focus();
-    showToast('Mohon isi nama pemesan terlebih dahulu.');
-    return;
-  }
-  if (customerPhoneDigits.length < 9 || customerPhoneDigits.length > 15) {
-    $('#customer-phone').focus();
-    showToast('Masukkan nomor telepon yang valid (9–15 digit).');
-    return;
-  }
-  const entries = [...cart.entries()].filter(([id]) => getMenu(id));
-  const lines = entries.map(([id, qty]) => {
-    const item = getMenu(id);
-    return `• ${item.name} x${qty} — ${money(item.price * qty)}`;
-  });
-  const total = entries.reduce((sum, [id, qty]) => sum + getMenu(id).price * qty, 0);
-  const note = $('#customer-note').value.trim();
-  const message = `Halo Nasimie Roja, saya ingin memesan:\n\nNama Pemesan: ${customerName}\nNomor Telepon: ${customerPhone}\n\n${lines.join('\n')}\n\nSubtotal: ${money(total)}${note ? `\nCatatan: ${note}` : ''}\n\nMohon konfirmasi ketersediaan dan total akhir pesanan. Terima kasih.`;
-  const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
-  const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+if (!cart.size) { showToast('Tambahkan menu terlebih dahulu.'); return; }
+const customerName = $('#customer-name').value.trim();
+const customerPhone = $('#customer-phone').value.trim();
+const customerPhoneDigits = customerPhone.replace(/\D/g, '');
+if (!customerName) {
+$('#customer-name').focus();
+showToast('Mohon isi nama pemesan terlebih dahulu.');
+return;
+}
+if (customerPhoneDigits.length < 9 || customerPhoneDigits.length > 15) {
+$('#customer-phone').focus();
+showToast('Masukkan nomor telepon yang valid (9–15 digit).');
+return;
+}
+const entries = [...cart.entries()].filter(([id]) => getMenu(id));
+const lines = entries.map(([id, qty]) => {
+const item = getMenu(id);
+return • ${item.name} x${qty} — ${money(item.price * qty)};
+});
+const total = entries.reduce((sum, [id, qty]) => sum + getMenu(id).price * qty, 0);
+const note = $('#customer-note').value.trim();
+const message = Halo Nasimie Roja, saya ingin memesan:\n\nNama Pemesan: ${customerName}\nNomor Telepon: ${customerPhone}\n\n${lines.join('\n')}\n\nSubtotal: ${money(total)}${note ? \nCatatan: ${note} : ''}\n\nMohon konfirmasi ketersediaan dan total akhir pesanan. Terima kasih.;
+const phone = WHATSAPP_NUMBER.replace(/\D/g, '');
+const url = phone ? https://wa.me{phone}?text=${encodeURIComponent(message)} : https://wa.me{encodeURIComponent(message)};
+window.open(url, '_blank', 'noopener,noreferrer');
 });
 $$('[data-open-cart]').forEach(button => button.addEventListener('click', openCart));
 $('#year').textContent = String(new Date().getFullYear());

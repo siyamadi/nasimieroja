@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://sitemaps.org">
+<urlset xmlns="http://sitemaps.org"
+        xmlns:xsi="http://w3.org"
+        xsi:schemaLocation="http://sitemaps.org
+                            http://sitemaps.org/sitemap.xsd">
   <url>
     <loc>https://nasimieroja.com</loc>
     <lastmod>2026-11-02</lastmod>
